@@ -8,10 +8,12 @@
 }
 
 .main-container {
+	height: 90vh;
 	font-family: 'Lato';
-	width: fit-content;
-	margin-left: auto;
-	margin-right: auto;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+	align-items: center;
 }
 
 .ck-content {
@@ -20,7 +22,12 @@
 	word-break: break-word;
 }
 
-.editor-container_classic-editor .editor-container__editor {
-	min-width: 795px;
-	max-width: 795px;
+.ck-editor-container {
+	min-width: 300px;
+	max-width: 300px;
+}
+
+.ck-editor__editable_inline:not(.ck-comment__input *) {
+    height: 300px;
+    overflow-y: auto;
 }

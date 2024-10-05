@@ -1,11 +1,16 @@
 <div>
 	<div class="main-container">
-		<div class="editor-container editor-container_classic-editor" #editorContainerElement>
-			<div class="editor-container__editor">
-				<div #editorElement>
-					<ckeditor [editor]="Editor" [config]="config" *ngIf="isLayoutReady" />
-				</div>
-			</div>
+		<div class="ck-editor-container">
+			<h1>Standard mode</h1>
+			<ckeditor [editor]="Editor" [config]="standardConfig" [(ngModel)]="data" *ngIf="isLayoutReady" />
+		</div>
+		<div class="ck-editor-container">
+			<h1>Restricted mode</h1>
+			<ckeditor [editor]="Editor" [config]="restrictedConfig" [(ngModel)]="data" (change)="onChange($event)" *ngIf="isLayoutReady" />
+		</div>
+		<div class="ck-editor-container">
+			<h1>ReadOnly mode</h1>
+			<ckeditor [editor]="Editor" [config]="baseConfig" [(ngModel)]="data" *ngIf="isLayoutReady" [disabled]="true" />
 		</div>
 	</div>
 </div>

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { ChangeEvent, CKEditorModule } from '@ckeditor/ckeditor5-angular';
 
 import {
 	ClassicEditor,
@@ -32,31 +32,48 @@ import {
 	TextTransformation,
 	Underline,
 	Undo,
-	type EditorConfig
+	EditorConfig,
+	StandardEditingMode,
+	RestrictedEditingMode,
+	ToolbarConfigItem,
+	ToolbarConfig,
+	Writer,
 } from 'ckeditor5';
+import { FormsModule } from '@angular/forms';
+
+const INITIAL_DATA: string = 'My first name is: <span class="restricted-editing-exception">David</span><br>My company is: <span class="restricted-editing-exception">CodePrecise</span>';
 
 @Component({
 	selector: 'app-root',
 	standalone: true,
-	imports: [CommonModule, CKEditorModule],
+	imports: [CommonModule, CKEditorModule, FormsModule],
 	templateUrl: './app.component.html',
 	styleUrls: ['./app.component.css'],
 	encapsulation: ViewEncapsulation.None
 })
 export class AppComponent {
-	constructor(private changeDetector: ChangeDetectorRef) {}
-
 	public isLayoutReady = false;
 	public Editor = ClassicEditor;
-	public config: EditorConfig = {}; // CKEditor needs the DOM tree before calculating the configuration.
+	public data: string = '';
+
+	public baseConfig: EditorConfig = {};
+	public standardConfig: EditorConfig = {};
+	public restrictedConfig: EditorConfig = {};
+
+	constructor(private changeDetector: ChangeDetectorRef) {
+		// Fixes the collapsed marker issue on init
+		// See https://github.com/ckeditor/ckeditor5/issues/9646
+		setTimeout(() => this.data = INITIAL_DATA, 0)
+	}
+
 	public ngAfterViewInit(): void {
-		this.config = {
+		// CKEditor needs the DOM tree before calculating the configuration.
+		this.baseConfig = {
 			toolbar: {
 				items: [
 					'undo',
 					'redo',
 					'|',
-					'sourceEditing',
 					'showBlocks',
 					'|',
 					'heading',
@@ -160,8 +177,6 @@ export class AppComponent {
 					}
 				]
 			},
-			initialData:
-				'<h2>Congratulations on setting up CKEditor 5! 🎉</h2>\n<p>\n    You\'ve successfully created a CKEditor 5 project. This powerful text editor will enhance your application, enabling rich text editing\n    capabilities that are customizable and easy to use.\n</p>\n<h3>What\'s next?</h3>\n<ol>\n    <li>\n        <strong>Integrate into your app</strong>: time to bring the editing into your application. Take the code you created and add to your\n        application.\n    </li>\n    <li>\n        <strong>Explore features:</strong> Experiment with different plugins and toolbar options to discover what works best for your needs.\n    </li>\n    <li>\n        <strong>Customize your editor:</strong> Tailor the editor\'s configuration to match your application\'s style and requirements. Or even\n        write your plugin!\n    </li>\n</ol>\n<p>\n    Keep experimenting, and don\'t hesitate to push the boundaries of what you can achieve with CKEditor 5. Your feedback is invaluable to us\n    as we strive to improve and evolve. Happy editing!\n</p>\n<h3>Helpful resources</h3>\n<ul>\n    <li>📝 <a href="https://orders.ckeditor.com/trial/premium-features">Trial sign up</a>,</li>\n    <li>📕 <a href="https://ckeditor.com/docs/ckeditor5/latest/installation/index.html">Documentation</a>,</li>\n    <li>⭐️ <a href="https://github.com/ckeditor/ckeditor5">GitHub</a> (star us if you can!),</li>\n    <li>🏠 <a href="https://ckeditor.com">CKEditor Homepage</a>,</li>\n    <li>🧑‍💻 <a href="https://ckeditor.com/ckeditor-5/demo/">CKEditor 5 Demos</a>,</li>\n</ul>\n<h3>Need help?</h3>\n<p>\n    See this text, but the editor is not starting up? Check the browser\'s console for clues and guidance. It may be related to an incorrect\n    license key if you use premium features or another feature-related requirement. If you cannot make it work, file a GitHub issue, and we\n    will help as soon as possible!\n</p>\n',
 			link: {
 				addTargetToExternalLinks: true,
 				defaultProtocol: 'https://',
@@ -180,8 +195,42 @@ export class AppComponent {
 				contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
 			}
 		};
-
+		this.standardConfig = {
+			...this.baseConfig,
+			plugins: [StandardEditingMode, ...this.baseConfig.plugins!],
+			toolbar: ['restrictedEditingException', ...this.getToolbarItems(this.baseConfig.toolbar!)]
+		};
+		this.restrictedConfig = {
+			...this.baseConfig,
+			plugins: [RestrictedEditingMode, ...this.baseConfig.plugins!],
+			toolbar: ['restrictedEditing', ...this.getToolbarItems(this.baseConfig.toolbar!)]
+		};
 		this.isLayoutReady = true;
 		this.changeDetector.detectChanges();
+	}
+
+	public onChange({ editor }: ChangeEvent) {
+		editor.model.change(writer => this.removeEmptyMarkers(writer));
+    }
+
+	// Toolbar can either be:
+	// 1. A class with a field 'items: ToolbarConfigItem[]'
+	// 2. A ToolbarConfigItem[]
+	// This function returns the correct array.
+	private getToolbarItems(toolbar: ToolbarConfig): ToolbarConfigItem[] {
+		if ('items' in toolbar) {
+			return toolbar.items ?? [];
+		}
+		return toolbar as ToolbarConfigItem[];
+	}
+
+	// This solves https://github.com/ckeditor/ckeditor5/issues/9646
+	// when using databinding the editor creates empty collapsed blank markers
+	private removeEmptyMarkers(writer: Writer): void {
+		for (const marker of Array.from(writer.model.markers)) {
+			if (marker.getStart().isEqual(marker.getEnd())) {
+				writer.removeMarker(marker);
+			}
+		}
 	}
 }
