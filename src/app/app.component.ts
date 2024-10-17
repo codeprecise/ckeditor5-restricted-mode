@@ -38,10 +38,11 @@ import {
 	ToolbarConfigItem,
 	ToolbarConfig,
 	Writer,
+	ListProperties,
 } from 'ckeditor5';
 import { FormsModule } from '@angular/forms';
 
-const INITIAL_DATA: string = 'My first name is: <span class="restricted-editing-exception">David</span><br>My company is: <span class="restricted-editing-exception">CodePrecise</span>';
+const INITIAL_DATA: string = '<ol><li>My first name is: <span class="restricted-editing-exception">David</span></li><li>My company is: <span class="restricted-editing-exception">CodePrecise</span></li></ol>';
 
 @Component({
 	selector: 'app-root',
@@ -71,6 +72,7 @@ export class AppComponent {
 		this.baseConfig = {
 			toolbar: {
 				items: [
+					'numberedList',
 					'undo',
 					'redo',
 					'|',
@@ -88,7 +90,7 @@ export class AppComponent {
 					'htmlEmbed',
 					'|',
 					'outdent',
-					'indent'
+					'indent',
 				],
 				shouldNotGroupWhenFull: false
 			},
@@ -120,7 +122,8 @@ export class AppComponent {
 				TableToolbar,
 				TextTransformation,
 				Underline,
-				Undo
+				Undo,
+				ListProperties,
 			],
 			heading: {
 				options: [
@@ -193,6 +196,25 @@ export class AppComponent {
 			placeholder: 'Type or paste your content here!',
 			table: {
 				contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
+			},
+			restrictedEditing: {
+				allowedCommands: [ 
+					'enter',
+					'numberedList',
+					// 'bulletedList',
+					// 'indentList',
+					// 'outdentList',
+					// 'mergeListItemBackward',
+					// 'mergeListItemForward',
+					'splitListItemBefore',
+					'splitListItemAfter',
+					// 'listStyle',
+					// 'listStart',
+					// 'listReversed',
+					// 'todoList',
+					// 'checkTodoList',
+				],
+				allowedAttributes: [ 'bold', 'italic', 'linkHref' ]
 			}
 		};
 		this.standardConfig = {
