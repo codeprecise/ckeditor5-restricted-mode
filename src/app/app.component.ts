@@ -39,10 +39,69 @@ import {
 	ToolbarConfig,
 	Writer,
 	ListProperties,
+	List,
+	Editor,
 } from 'ckeditor5';
 import { FormsModule } from '@angular/forms';
 
-const INITIAL_DATA: string = '<ol><li>My first name is: <span class="restricted-editing-exception">David</span></li><li>My company is: <span class="restricted-editing-exception">CodePrecise</span></li></ol>';
+const TABLE: string = `
+`
+const INITIAL_DATA: string = 
+`
+<h1>Numbered list</h1>
+<ol>
+	<li>
+		My first name is: 
+		<span class="restricted-editing-exception">David</span>
+	</li>
+	<li>
+		My company is: 
+		<span class="restricted-editing-exception">CodePrecise</span>
+	</li>
+</ol>
+
+<h1>Numbered list2</h1>
+<ol>
+	<li>
+		My first name is: David
+	</li>
+	<li>
+		My company is: CodePrecise
+	</li>
+</ol>
+
+<h1>Inline table</h1>
+<figure class="table">
+    <table>
+        <tbody>
+            <tr>
+                <td>Foo</td>
+                <td>Bar</td>
+            </tr>
+        </tbody>
+    </table>
+</figure>
+
+<h1>Block table</h1>
+<figure class="table">
+    <table>
+        <tbody>
+            <tr>
+                <td>
+                    <p>Foo</p>
+                    <p>Bar</p>
+                </td>
+                <td>
+                    <h2>Some title</h2>
+                </td>
+                <td>
+                    <p style="text-align: right;">Baz</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</figure>
+`
 
 @Component({
 	selector: 'app-root',
@@ -123,6 +182,7 @@ export class AppComponent {
 				TextTransformation,
 				Underline,
 				Undo,
+				List,
 				ListProperties,
 			],
 			heading: {
@@ -199,6 +259,7 @@ export class AppComponent {
 			},
 			restrictedEditing: {
 				allowedCommands: [ 
+					'delete',
 					'enter',
 					'numberedList',
 					// 'bulletedList',
@@ -231,7 +292,17 @@ export class AppComponent {
 		this.changeDetector.detectChanges();
 	}
 
+	public onReady(editor: Editor) {
+		const plugin = editor.plugins.get( 'RestrictedEditingModeEditing' )	
+		plugin.enableCommand( 'delete' );
+		plugin.enableCommand( 'enter' );
+		plugin.enableCommand( 'numberedList' );
+		plugin.enableCommand( 'splitListItemBefore' );
+		plugin.enableCommand( 'splitListItemAfter' );
+	}
+
 	public onChange({ editor }: ChangeEvent) {
+		console.log(editor.commands)
 		editor.model.change(writer => this.removeEmptyMarkers(writer));
     }
 
