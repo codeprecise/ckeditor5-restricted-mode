@@ -42,6 +42,8 @@ import {
 	Editor,
 } from 'ckeditor5';
 import { FormsModule } from '@angular/forms';
+import { RestrictedEditingEnter } from './restrictedediting-enter';
+import { Suffix } from './suffix';
 
 const INITIAL_DATA: string = '<ol><li>My first name is: <span class="restricted-editing-exception">David</span></li><li>My company is: <span class="restricted-editing-exception">CodePrecise</span></li></ol>';
 
@@ -67,6 +69,9 @@ export class AppComponent {
 	constructor(private changeDetector: ChangeDetectorRef) {
 		this.commandsAllowedInsideRestrictedAreas = [
 			'enter',
+			'shiftEnter',
+			'addSuffix',
+			'removeSuffix',
 			'numberedList',
 			// 'bulletedList',
 			'indentList',
@@ -82,7 +87,6 @@ export class AppComponent {
 			// 'checkTodoList',
 		];
 		this.commandsAllowedOutsideOfRestrictedAreas = [
-
 		];
 		// Fixes the collapsed marker issue on init
 		// See https://github.com/ckeditor/ckeditor5/issues/9646
@@ -231,7 +235,7 @@ export class AppComponent {
 		};
 		this.restrictedConfig = {
 			...this.baseConfig,
-			plugins: [RestrictedEditingMode, ...this.baseConfig.plugins!],
+			plugins: [Suffix, RestrictedEditingEnter, RestrictedEditingMode, ...this.baseConfig.plugins!],
 			toolbar: ['restrictedEditing', ...this.getToolbarItems(this.baseConfig.toolbar!)]
 		};
 		this.isLayoutReady = true;
