@@ -40,7 +40,13 @@ import {
 	Writer,
 	ListProperties,
 	Editor,
+	EnterCommandAfterExecuteEvent,
+	StandardEditingModeEditing,
+	ViewDocumentEnterEvent,
+	Position,
+	Element,
 } from 'ckeditor5';
+import { RestrictedEditingExceptionCommand } from 'ckeditor5';
 import { FormsModule } from '@angular/forms';
 
 const INITIAL_DATA: string = '<ol><li>My first name is: <span class="restricted-editing-exception">David</span></li><li>My company is: <span class="restricted-editing-exception">CodePrecise</span></li></ol>';
@@ -80,9 +86,10 @@ export class AppComponent {
 			// 'listReversed',
 			// 'todoList',
 			// 'checkTodoList',
+
+			'restrictedEditingException'
 		];
 		this.commandsAllowedOutsideOfRestrictedAreas = [
-
 		];
 		// Fixes the collapsed marker issue on init
 		// See https://github.com/ckeditor/ckeditor5/issues/9646
@@ -231,7 +238,7 @@ export class AppComponent {
 		};
 		this.restrictedConfig = {
 			...this.baseConfig,
-			plugins: [RestrictedEditingMode, ...this.baseConfig.plugins!],
+			plugins: [RestrictedEditingMode, StandardEditingModeEditing, ...this.baseConfig.plugins!],
 			toolbar: ['restrictedEditing', ...this.getToolbarItems(this.baseConfig.toolbar!)]
 		};
 		this.isLayoutReady = true;
@@ -242,6 +249,46 @@ export class AppComponent {
 		console.log("Available commands:", editor.commands);
 
 		const plugin = editor.plugins.get( 'RestrictedEditingModeEditing' );
+		const enterCommand = editor.commands.get('enter');
+		//editor.commands.add( 'restrictedEditingException', rest );
+		const exceptionCommand = editor.commands.get('restrictedEditingException');
+		editor.execute
+		plugin.listenTo<EnterCommandAfterExecuteEvent>( enterCommand!, 'afterExecute', ( evt, data ) => {
+			console.log('enter')
+			const positionParent = editor.model.document.selection.getFirstPosition()!.parent;
+			// console.log(editor.model.document.selection)
+			// const sel = editor.model.document.selection.getFirstRange();
+			// sel!.end!.offset! = sel!.end!.offset! + 2;
+			const pos = editor.model.document.selection.getFirstPosition();
+			// const a = editor.model.createRange(sel!.start, sel!.end);
+			//data.writer.insertElement('<span class="restricted-editing-exception">David</span>', pos!, 0)
+
+			const paragraph = new Element( 'paragraph', {'class': 'restricted-editing-exception'}, 'a' );
+     		data.writer.append( paragraph, editor.model.document.selection.getFirstPosition()!.parent );
+			data.writer.insertElement('paragraph', {'class': 'restricted-editing-exception'}, pos!, 0)
+			
+			setTimeout(() => {exceptionCommand!.execute();}, 0);
+			data.					writer.setSelectionAttribute( 'restrictedEditingException', undefined );
+
+
+			// // Define the editable range in the content
+            // const range = data.writer.createRange(
+            //     data.writer.createPositionAt(editor.model.document.getRoot()!.getChild(0)!, 1), // Start of the range
+            //     data.writer.createPositionAt(editor.model.document.getRoot()!.getChild(0)!, 3)  // End of the range
+            // );
+
+			// console.log(range)
+
+			// data.writer.setAttribute( 'restrictedEditingException', undefined, range );
+
+            // // Add a restricted editing marker for the range
+            // data.writer.addMarker('restrictedEditable', {
+            //     range: range,
+            //     usingOperation: true, // Ensure this change is trackable in undo history
+            //     affectsData: true
+            // });
+		} );
+		//plugin.stopListening(insertTextCommand, 'execute')
 
 		// RestrictedEditingModeEditing listens to the tab event to allow navigation between the
 		// different restricted mode areas.
