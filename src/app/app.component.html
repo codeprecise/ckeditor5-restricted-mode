@@ -6,7 +6,7 @@
 		</div>
 		<div class="ck-editor-container">
 			<h1>Restricted mode</h1>
-			<ckeditor [editor]="Editor" [config]="restrictedConfig" [(ngModel)]="data" (change)="onChange($event)" *ngIf="isLayoutReady" />
+			<ckeditor [editor]="Editor" [config]="restrictedConfig" [(ngModel)]="data" (ready)="onRestrictedEditorReady($event)" (change)="onChange($event)" *ngIf="isLayoutReady" />
 		</div>
 		<div class="ck-editor-container">
 			<h1>ReadOnly mode</h1>

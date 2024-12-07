@@ -39,6 +39,7 @@ import {
 	ToolbarConfig,
 	Writer,
 	ListProperties,
+	Editor,
 } from 'ckeditor5';
 import { FormsModule } from '@angular/forms';
 
@@ -57,11 +58,32 @@ export class AppComponent {
 	public Editor = ClassicEditor;
 	public data: string = '';
 
+	public commandsAllowedInsideRestrictedAreas: Array<string>;
+	public commandsAllowedOutsideOfRestrictedAreas: Array<string>;
 	public baseConfig: EditorConfig = {};
 	public standardConfig: EditorConfig = {};
 	public restrictedConfig: EditorConfig = {};
 
 	constructor(private changeDetector: ChangeDetectorRef) {
+		this.commandsAllowedInsideRestrictedAreas = [
+			'enter',
+			'numberedList',
+			// 'bulletedList',
+			'indentList',
+			'outdentList',
+			// 'mergeListItemBackward',
+			// 'mergeListItemForward',
+			'splitListItemBefore',
+			'splitListItemAfter',
+			// 'listStyle',
+			// 'listStart',
+			// 'listReversed',
+			// 'todoList',
+			// 'checkTodoList',
+		];
+		this.commandsAllowedOutsideOfRestrictedAreas = [
+
+		];
 		// Fixes the collapsed marker issue on init
 		// See https://github.com/ckeditor/ckeditor5/issues/9646
 		setTimeout(() => this.data = INITIAL_DATA, 0)
@@ -198,22 +220,7 @@ export class AppComponent {
 				contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
 			},
 			restrictedEditing: {
-				allowedCommands: [ 
-					'enter',
-					'numberedList',
-					// 'bulletedList',
-					// 'indentList',
-					// 'outdentList',
-					// 'mergeListItemBackward',
-					// 'mergeListItemForward',
-					'splitListItemBefore',
-					'splitListItemAfter',
-					// 'listStyle',
-					// 'listStart',
-					// 'listReversed',
-					// 'todoList',
-					// 'checkTodoList',
-				],
+				allowedCommands: this.commandsAllowedInsideRestrictedAreas,
 				allowedAttributes: [ 'bold', 'italic', 'linkHref' ]
 			}
 		};
@@ -229,6 +236,24 @@ export class AppComponent {
 		};
 		this.isLayoutReady = true;
 		this.changeDetector.detectChanges();
+	}
+
+	public onRestrictedEditorReady(editor: Editor) {
+		console.log("Available commands:", editor.commands);
+
+		const plugin = editor.plugins.get( 'RestrictedEditingModeEditing' );
+
+		// RestrictedEditingModeEditing listens to the tab event to allow navigation between the
+		// different restricted mode areas.
+		// In the event callback, the command stops the tab event from triggering other commands registered on this event.
+		// See:
+		// https://github.com/ckeditor/ckeditor5/blob/d9b35d2d8e0410d246962007edd532e35845d126/packages/ckeditor5-restricted-editing/src/restrictededitingmodeediting.ts#L135
+		// 
+		// In the following line we remove the RestirectedEditingModeEditing tab event registration,
+		// to allow ListIndent command to receive it.
+		plugin.stopListening(editor.editing.view.document, 'tab');
+
+		this.commandsAllowedOutsideOfRestrictedAreas.forEach(command => plugin.enableCommand(command));
 	}
 
 	public onChange({ editor }: ChangeEvent) {
